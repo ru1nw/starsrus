@@ -1,6 +1,8 @@
 package main.Trader;
 import java.util.Scanner;
 
+import oracle.jdbc.OracleConnection;
+
 import main.Template.UserInterface;
 
 public class TraderInterface extends UserInterface {
@@ -17,13 +19,13 @@ public class TraderInterface extends UserInterface {
         7. Show stock account transaction history
         8. List current price of a stock and the actor profile
         9. List movie information
-        10. Logout
+        0. Logout
         >>> """;
     
-    public static void show() {
+    public static void display(OracleConnection connection, String user) {
         Scanner myObj = new Scanner(System.in);
         String userChoice = "";
-        while (!userChoice.equals("10")) {
+        while (!userChoice.equals("0")) {
             System.out.print(options);
             userChoice = myObj.nextLine();
             switch (userChoice) {
@@ -54,11 +56,11 @@ public class TraderInterface extends UserInterface {
                 case "9":
                     System.out.println("List movie information");
                     break;
-                case "10":
+                case "0":
                     System.out.println("Logout");
                     break;
                 default:
-                    System.out.println("Please enter a number between 1 and 10 (no leading zeros)");
+                    System.out.println("Please enter a number between 0 and 9 (no leading zeros)");
             }
         }
         myObj.close();

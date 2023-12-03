@@ -5,7 +5,7 @@ import java.util.Properties;
 
 import oracle.jdbc.pool.OracleDataSource;
 import oracle.jdbc.OracleConnection;
-
+import main.Authentication.AuthInterface;
 import main.Trader.TraderInterface;
 import main.Util.AppProperties;
 
@@ -42,10 +42,10 @@ public class App {
             System.out.println("Database username: " + connection.getUserName());
             System.out.println();
             // Perform some database operations
+            AuthInterface.display(connection);
         } catch (Exception e) {
             System.out.println("CONNECTION ERROR:");
             System.out.println(e);
         }
-        TraderInterface.show();
     }
 }
