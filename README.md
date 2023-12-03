@@ -14,8 +14,12 @@ Fall 2023
 
 1. install [Java Development Kit (JDK) 21](https://www.oracle.com/java/technologies/downloads/#java21)
 2. clone the project
-3. under `class AppProperties` in `src/main/Util/AppProperties.java`, fill in `PATH_TO_WALLET` and `DB_PASSWORD`
-4. at the root of the project, run
+   1. `git clone https://github.com/ru1nw/starsrus.git`
+3. extract the wallet for Oracle DB to the root of the project
+4. fill in environment properties
+   1. make a copy of `src/main/Util/TEMPLATE-AppProperties.java` in the same folder, name it `AppProperties.java`
+   2. under `class AppProperties` in , fill in `PATH_TO_WALLET` and `DB_PASSWORD`
+5. compile and execute: at the root of the project, run
    1. `chmod u+x compile run`
    2. `./compile src/main/App.java`
    3. `./run App`
