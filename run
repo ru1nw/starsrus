@@ -1,0 +1,2 @@
+#! /bin/bash
+java -cp "ojdbc11-full/ojdbc11.jar:bin" main.$1

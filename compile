@@ -1,0 +1,2 @@
+#! /bin/bash
+javac -cp "ojdbc11-full/ojdbc11.jar:src" -d bin $1
