@@ -71,8 +71,8 @@ public class TestConnection {
             System.out.println("Database username: " + connection.getUserName());
             System.out.println();
             // Perform some database operations
-            insertTA(connection);
-            printInstructors(connection);
+            // insertTA(connection);
+            printAccounts(connection);
         } catch (Exception e) {
             System.out.println("CONNECTION ERROR:");
             System.out.println(e);
@@ -95,22 +95,22 @@ public class TestConnection {
         }
     }
 
-    // Displays data from Instructors table.
-    public static void printInstructors(Connection connection) throws SQLException {
+    // Displays data from Accounts table.
+    public static void printAccounts(Connection connection) throws SQLException {
         // Statement and ResultSet are AutoCloseable and closed automatically. 
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
-                    "SELECT * FROM INSTRUCTORS"
+                    "SELECT * FROM Accounts"
                 )
             ) {
-                System.out.println("INSTRUCTORS:");
-                System.out.println("I_ID\tI_NAME\t\tI_ROLE");
+                System.out.println("Accounts:");
+                System.out.println("aid\tbalance\tuname");
                 while (resultSet.next()) {
                     System.out.println(
-                        resultSet.getString("I_ID") + "\t"
-                        + resultSet.getString("I_NAME") + "\t"
-                        + resultSet.getString("I_ROLE")
+                        resultSet.getString("aid") + "\t"
+                        + resultSet.getString("balance") + "\t"
+                        + resultSet.getString("uname")
                     );
                 }
             }

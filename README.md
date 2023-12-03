@@ -19,10 +19,16 @@ Fall 2023
 4. fill in environment properties
    1. make a copy of `src/main/Util/TEMPLATE-AppProperties.java` in the same folder, name it `AppProperties.java`
    2. under `class AppProperties` in , fill in `PATH_TO_WALLET` and `DB_PASSWORD`
-5. compile and execute: at the root of the project, run
-   1. `chmod u+x compile run`
-   2. `./compile src/main/App.java`
-   3. `./run App`
+5. make our lives easier by utilizing these shell scripts
+   1. at the root of the project, run `chmod u+x compile run`
+6. compile and test connection: at the root of the project, run
+   1. `./compile src/main/Util/TestConnection.java`
+   2. `./run Util.App`
+   3. if success, it would print out the `Accounts` table with columns `aid`, `balance`, and `uname`
+   4. if failed, there might be somthing wrong with the environment properties in `AppProperties.java`, or the database was shut down
+7. compile and execute: at the root of the project, run
+   1. `./compile src/main/App.java`
+   2. `./run App`
 
 ## team member & contribution
 
