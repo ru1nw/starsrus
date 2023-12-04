@@ -1,6 +1,6 @@
 package main.Util;
 
-public final class AppProperties {
+public final class TemplateAppProperties {
     /*
     * >>>>>>>>>>>>>>>>>>>>READ ME<<<<<<<<<<<<<<<<<<<<
     * Make a copy of this file,
