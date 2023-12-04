@@ -52,7 +52,7 @@ public class TraderOperation extends UserOperation {
         }
     }
 
-    public Double getCurrentFunds(String username) throws SQLException {
+    public Double getCurrentBalance(String username) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             String marketAID = this.getMarketAccount(username, statement);
 

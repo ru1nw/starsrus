@@ -1,6 +1,7 @@
 package main.Authentication;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import main.Template.UserOperation;
@@ -47,26 +48,30 @@ public class AuthOperation extends UserOperation {
                     state + "', '" + phone + "', '" + email + "', '" + taxid + "')"
                 )
             ) {}
+
+            Integer aid = getNextID("Accounts");
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO Accounts (aid, balance, uname) " +
+                    "VALUES ('" + aid + "', 0, '" + username + "')"
+                )
+            ) {}
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO MarketAccounts (aid) " +
+                    "VALUES ('" + aid + "')"
+                )
+            ) {}
         } catch (Exception e) {
             System.err.println(e);
             return "";
         }
-        try (Statement statement = connection.createStatement()) {
-            try (
-                ResultSet resultSet = statement.executeQuery(
-                    "SELECT username " +
-                    "FROM Customers C " +
-                    "WHERE C.username = '" + username + "' " +
-                    "AND C.password = '" + password + "'"
-                )
-            ) {
-                resultSet.next();
-                return resultSet.getString("username");
-            }
-        } catch (Exception e) {
-            System.err.println(e);
-        }
-        return "";
+
+        return signInCustomer(username, password);
     }
 
     public final String signInManager(String username, String password) {
