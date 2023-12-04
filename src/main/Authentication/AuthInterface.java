@@ -16,7 +16,7 @@ public class AuthInterface extends UserInterface {
         2. Customer register
         3. Manager sign in
         0. Exit
-        >>> """;
+        >>>\s""";
     
     public static void display(OracleConnection connection) {
         Scanner myObj = new Scanner(System.in);

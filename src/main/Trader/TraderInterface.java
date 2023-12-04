@@ -20,7 +20,7 @@ public class TraderInterface extends UserInterface {
         8. List current price of a stock and the actor profile
         9. List movie information
         0. Logout
-        >>> """;
+        >>>\s""";
     
     public static void display(OracleConnection connection, String user) {
         Scanner myObj = new Scanner(System.in);
