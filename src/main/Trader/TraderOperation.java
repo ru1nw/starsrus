@@ -1,6 +1,9 @@
 package main.Trader;
 
-public class TraderOperation {
+import main.Template.UserOperation;
+import oracle.jdbc.OracleConnection;
+
+public class TraderOperation extends UserOperation {
     /*
     1. Deposit
     2. Withdrawal
@@ -12,4 +15,8 @@ public class TraderOperation {
     8. List current price of a stock and the actor profile
     9. List movie information
     */
+
+    public TraderOperation(OracleConnection connection) {
+        super(connection);
+    }
 }

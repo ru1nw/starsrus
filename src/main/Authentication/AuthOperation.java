@@ -3,15 +3,21 @@ package main.Authentication;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import main.Template.UserOperation;
 import oracle.jdbc.OracleConnection;
 
-public class AuthOperation {
+public class AuthOperation extends UserOperation {
     /*
     1. Customer sign in
     2. Customer register
     3. Manager sign in
     */
-    public static final String signInCustomer(OracleConnection connection, String username, String password) {
+
+    public AuthOperation(OracleConnection connection) {
+        super(connection);
+    }
+
+    public final String signInCustomer(String username, String password) {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
@@ -30,14 +36,14 @@ public class AuthOperation {
         return "";
     }
 
-    public static final String signUpCustomer(OracleConnection connection, String name, String username, String password, 
+    public final String signUpCustomer(String name, String username, String password,
                                               String state, String phone, String email, String taxid) {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
                     "INSERT " +
                     "INTO Customers (name, username, password, state, phone, email, taxid) " +
-                    "VALUES ('" + name + "', '" + username + "', '" + password + "', '" + 
+                    "VALUES ('" + name + "', '" + username + "', '" + password + "', '" +
                     state + "', '" + phone + "', '" + email + "', '" + taxid + "')"
                 )
             ) {}
@@ -63,7 +69,7 @@ public class AuthOperation {
         return "";
     }
 
-    public static final String signInManager(OracleConnection connection, String username, String password) {
+    public final String signInManager(String username, String password) {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(

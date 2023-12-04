@@ -21,6 +21,8 @@ public class AuthInterface extends UserInterface {
     public static void display(OracleConnection connection) {
         Scanner myObj = new Scanner(System.in);
         String userChoice = "";
+        AuthOperation operation = new AuthOperation(connection);
+
         while (!userChoice.equals("0")) {
             System.out.print(options);
             userChoice = myObj.nextLine();
@@ -32,7 +34,7 @@ public class AuthInterface extends UserInterface {
                     username = myObj.nextLine();
                     System.out.print("password > ");
                     password = myObj.nextLine();
-                    user = AuthOperation.signInCustomer(connection, username, password);
+                    user = operation.signInCustomer(username, password);
                     if (user.isEmpty()) {
                         System.err.println("ERROR: login failed.");
                     } else {
@@ -62,7 +64,7 @@ public class AuthInterface extends UserInterface {
                     String email = myObj.nextLine();
                     System.out.print("taxid > ");
                     String taxid = myObj.nextLine();
-                    user = AuthOperation.signUpCustomer(connection, name, username, password, state, phone, email, taxid);
+                    user = operation.signUpCustomer(name, username, password, state, phone, email, taxid);
                     if (user.isEmpty()) {
                         System.err.println("ERROR: login failed.");
                     } else {
@@ -76,7 +78,7 @@ public class AuthInterface extends UserInterface {
                     username = myObj.nextLine();
                     System.out.print("password > ");
                     password = myObj.nextLine();
-                    user = AuthOperation.signInManager(connection, username, password);
+                    user = operation.signInManager(username, password);
                     if (user.isEmpty()) {
                         System.err.println("ERROR: login failed.");
                     } else {
