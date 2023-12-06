@@ -92,6 +92,12 @@ public class TraderInterface extends UserInterface {
                     break;
                 case "7":
                     System.out.println("Show stock account transaction history");
+
+                    try {
+                        operation.getTransactionHistory(user);
+                    } catch (SQLException e) {
+                        System.err.println(e);
+                    }
                     break;
                 case "8":
                     System.out.println("List current price of a stock and the actor profile");

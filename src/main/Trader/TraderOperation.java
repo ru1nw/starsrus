@@ -24,6 +24,7 @@ public class TraderOperation extends UserOperation {
         super(connection);
     }
 
+    // 1 deposit
     public void depositFunds(String username, Double amount) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             String marketAID = this.getMarketAccount(username, statement);
@@ -38,6 +39,7 @@ public class TraderOperation extends UserOperation {
         }
     }
 
+    // 2 withdrawal
     public void withdrawFunds(String username, Double amount) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             String marketAID = this.getMarketAccount(username, statement);
@@ -52,6 +54,7 @@ public class TraderOperation extends UserOperation {
         }
     }
 
+    // 6 market account balance
     public Double getCurrentBalance(String username) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             String marketAID = this.getMarketAccount(username, statement);
@@ -65,6 +68,41 @@ public class TraderOperation extends UserOperation {
             ) {
                 resultSet.next();
                 return resultSet.getDouble("balance");
+            }
+        }
+    }
+
+    // 7 stock account transaction history
+    public void getTransactionHistory(String username) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            String marketAID = this.getMarketAccount(username, statement);
+
+            try (
+                // stock accounts can only buy and sell
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT tid, aid, TO_CHAR(tdate, 'YYYY-MM-DD') AS tdate, amt, price, ssymbol, 'buy' AS op " +
+                    "FROM Transactions NATURAL JOIN Buys NATURAL JOIN StockAccounts " + 
+                    "WHERE aid IN (SELECT aid " +
+                    "FROM Accounts NATURAL JOIN StockAccounts " +
+                    "WHERE uname = '" + username + "')" +
+                    "UNION " + 
+                    "SELECT tid, aid, TO_CHAR(tdate, 'YYYY-MM-DD') AS tdate, amt, price, ssymbol, 'sell' AS op " +
+                    "FROM Transactions NATURAL JOIN Sells NATURAL JOIN StockAccounts " + 
+                    "WHERE aid IN (SELECT aid " +
+                    "FROM Accounts NATURAL JOIN StockAccounts " +
+                    "WHERE uname = '" + username + "')"
+                )
+            ) {
+                System.out.println("Date\t\tTransaction Type\tStock Symbol\t# of Shares\tPrice");
+                while (resultSet.next()) {
+                    System.out.println(
+                        resultSet.getString("tdate") + "\t"
+                        + resultSet.getString("op") + "\t\t\t"
+                        + resultSet.getString("ssymbol") + "\t\t"
+                        + resultSet.getString("amt") + "\t\t"
+                        + resultSet.getString("price")
+                    );
+                }
             }
         }
     }
