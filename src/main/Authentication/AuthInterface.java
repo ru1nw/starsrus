@@ -41,7 +41,7 @@ public class AuthInterface extends UserInterface {
                         if (user.isEmpty()) {
                             System.err.println("ERROR: login failed.");
                         } else {
-                            TraderInterface.display(connection, user);
+                            TraderInterface.display(connection, user.trim());
                             userChoice = "0";
                         }
                     } catch (Exception e) {
@@ -76,7 +76,7 @@ public class AuthInterface extends UserInterface {
                         if (user.isEmpty()) {
                             System.err.println("ERROR: login failed.");
                         } else {
-                            TraderInterface.display(connection, user);
+                            TraderInterface.display(connection, user.trim());
                             userChoice = "0";
                         }
                     } catch (Exception e) {
@@ -96,7 +96,7 @@ public class AuthInterface extends UserInterface {
                             System.err.println("ERROR: login failed.");
                         } else {
                             // uncomment the line below when ManagerInterface is implemented
-                            ManagerInterface.display(connection, user);
+                            ManagerInterface.display(connection, user.trim());
                             userChoice = "0";
                         }
                     } catch (Exception e) {
