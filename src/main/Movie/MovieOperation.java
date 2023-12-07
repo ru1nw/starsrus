@@ -37,6 +37,8 @@ public class MovieOperation extends UserOperation {
                     );
                 }
             }
+        } catch (Exception e) {
+            System.err.println(e);
         }
     }
 
@@ -61,10 +63,12 @@ public class MovieOperation extends UserOperation {
                     );
                 }
             }
+        } catch (Exception e) {
+            System.err.println(e);
         }
     }
 
-    // 3
+    // 3 list all movies
     public void getAllMovies() throws SQLException {
         try (Statement statement = connection.createStatement()) {
             try (
@@ -82,6 +86,8 @@ public class MovieOperation extends UserOperation {
                     );
                 }
             }
+        } catch (Exception e) {
+            System.err.println(e);
         }
     }
 }

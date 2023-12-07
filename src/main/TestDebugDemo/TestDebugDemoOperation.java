@@ -30,6 +30,8 @@ public class TestDebugDemoOperation extends UserOperation {
                     "WHERE key = 'isMarketOpen'"
                 )
             ) {}
+        } catch (Exception e) {
+            System.err.println(e);
         }
     }
 
@@ -54,6 +56,8 @@ public class TestDebugDemoOperation extends UserOperation {
                     "WHERE symbol = '" + stock + "'"
                 )
             ) {}
+        } catch (Exception e) {
+            System.err.println(e);
         }
     }
 
@@ -67,6 +71,8 @@ public class TestDebugDemoOperation extends UserOperation {
                     "WHERE key = 'currentDate'"
                 )
             ) {}
+        } catch (Exception e) {
+            System.err.println(e);
         }
     }
 }

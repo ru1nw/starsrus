@@ -277,6 +277,9 @@ public class TraderOperation extends UserOperation {
 
                 return transactionHistory.toString();
             }
+        } catch (Exception e) {
+            System.err.println(e);
+            return "";
         }
     }
 
@@ -301,8 +304,14 @@ public class TraderOperation extends UserOperation {
 
                 return transactionHistory.toString();
             }
+        } catch (Exception e) {
+            System.err.println(e);
+            return "";
         }
     }
+
+    // 9 list movie information
+    // see src/main/Movie
 
     private Integer getMarketAccount(String username, Statement statement) throws SQLException {
         try (
@@ -380,6 +389,9 @@ public class TraderOperation extends UserOperation {
 
                 return symbols;
             }
+        } catch (Exception e) {
+            System.err.println(e);
+            return null;
         }
     }
 }
