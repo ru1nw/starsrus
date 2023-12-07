@@ -144,7 +144,31 @@ public class ManagerOperation extends UserOperation {
     }
 
     // 5 customer report
-    public final String getCustomerReport(String username) throws SQLException {return "";}
+    public final String getCustomerReport(String username) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            try (
+               ResultSet resultSet = statement.executeQuery(
+                    "SELECT aid, type, balance " +
+                    "FROM (SELECT aid, 'market acc' as type, balance " +
+                    "FROM MarketAccounts NATURAL JOIN Accounts " +
+                    "WHERE uname = '" + username + "' " +
+                    ") UNION (SELECT aid, concat('stock ', ssymbol) as type, balance " +
+                    "FROM StockAccounts NATURAL JOIN Accounts " +
+                    "WHERE uname = '" + username + "')"
+                )
+            ) {
+                StringBuilder report = new StringBuilder("Account ID\tType\t\tBalance\n");
+                while (resultSet.next()) {
+                    report
+                            .append(resultSet.getString("aid")).append("\t\t")
+                            .append(resultSet.getString("type")).append("\t")
+                            .append(resultSet.getString("balance")).append("\n");
+                }
+
+                return report.toString();
+            }
+        }
+    }
 
     // 6 delete transactions
     public final String deleteTransactions() throws SQLException {return "";}
