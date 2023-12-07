@@ -1,6 +1,5 @@
 package main.Trader;
 import java.sql.SQLException;
-import java.util.Scanner;
 
 import oracle.jdbc.OracleConnection;
 import main.Movie.MovieInterface;
@@ -73,11 +72,33 @@ public class TraderInterface extends UserInterface {
                 case "3":
                     System.out.println("Buy");
                     try {
-                        operation.buyStocks(user, "SKB", 1.0);
+                        String stocks = operation.getAllStocks();
+                        System.out.println(stocks);
+                    } catch (SQLException e) {
+                        System.err.println(e);
+                    }
+
+                    System.out.print("Stock symbol > ");
+                    String symbol = myObj.nextLine();
+                    System.out.print("Shares > ");
+                    Double shares = Double.valueOf(myObj.nextLine());
+
+                    if (shares <= 0) {
+                        System.err.println("Error: shares must be greater than 0");
+                        return;
+                    }
+
+                    try {
+                        Double totalPurchase = operation.buyStocks(user, symbol, shares);
+                        System.out.println("Successfully purchased " + shares + " of " + symbol + " for a total of $" + totalPurchase);
                     } catch (SQLException e) {
                         switch (e.getErrorCode()) {
                             case 2290:
                                 System.err.println("Error: cannot withdraw more than account balance");
+                                break;
+                            case 2291:
+                            case 12899:
+                                System.err.println("Error: invalid stock symbol");
                                 break;
                             default:
                                 System.err.println(e);
@@ -86,6 +107,12 @@ public class TraderInterface extends UserInterface {
                     break;
                 case "4":
                     System.out.println("Sell");
+                    try {
+                        String stocks = operation.getAllStocks();
+                        System.out.println(stocks);
+                    } catch (SQLException e) {
+                        System.err.println(e);
+                    }
                     break;
                 case "5":
                     System.out.println("Cancel");
@@ -114,7 +141,8 @@ public class TraderInterface extends UserInterface {
                     System.out.println("List current price of a stock and the actor profile");
 
                     try {
-                        operation.getStarStocks();
+                        String stocks = operation.getAllStocks();
+                        System.out.println(stocks);
                     } catch (SQLException e) {
                         System.err.println(e);
                     }
