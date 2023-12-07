@@ -19,7 +19,6 @@ public class AuthInterface extends UserInterface {
         >>>\s""";
     
     public static void display(OracleConnection connection) {
-        Scanner myObj = new Scanner(System.in);
         String userChoice = "";
         AuthOperation operation = new AuthOperation(connection);
 
