@@ -1,9 +1,7 @@
 package main.Movie;
 
-import java.sql.SQLException;
-import java.util.Scanner;
-
 import oracle.jdbc.OracleConnection;
+
 import main.Template.UserInterface;
 
 public class MovieInterface extends UserInterface {
@@ -32,7 +30,7 @@ public class MovieInterface extends UserInterface {
 
                     try {
                         operation.getMovie(title);
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         System.err.println(e);
                     }
                     break;
@@ -42,17 +40,19 @@ public class MovieInterface extends UserInterface {
                     startYear = myObj.nextLine();
                     System.out.print("end year > ");
                     endYear = myObj.nextLine();
+
                     try {
                         operation.getTopMovieBetween(startYear, endYear);
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         System.err.println(e);
                     }
                     break;
                 case "3":
                     System.out.println("List all movies");
+
                     try {
                         operation.getAllMovies();
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         System.err.println(e);
                     }
                     break;

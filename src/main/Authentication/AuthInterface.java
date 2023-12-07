@@ -3,10 +3,10 @@ package main.Authentication;
 import java.util.Scanner;
 
 import oracle.jdbc.OracleConnection;
-import main.Manager.ManagerInterface;
 import main.Template.UserInterface;
-import main.TestDebugDemo.TestDebugDemoInterface;
 import main.Trader.TraderInterface;
+import main.Manager.ManagerInterface;
+import main.TestDebugDemo.TestDebugDemoInterface;
 
 public class AuthInterface extends UserInterface {
     private static String options = """
@@ -35,12 +35,17 @@ public class AuthInterface extends UserInterface {
                     username = myObj.nextLine();
                     System.out.print("password > ");
                     password = myObj.nextLine();
-                    user = operation.signInCustomer(username, password);
-                    if (user.isEmpty()) {
-                        System.err.println("ERROR: login failed.");
-                    } else {
-                        TraderInterface.display(connection, user);
-                        userChoice = "0";
+                    
+                    try {
+                        user = operation.signInCustomer(username, password);
+                        if (user.isEmpty()) {
+                            System.err.println("ERROR: login failed.");
+                        } else {
+                            TraderInterface.display(connection, user);
+                            userChoice = "0";
+                        }
+                    } catch (Exception e) {
+                        System.err.println(e);
                     }
                     break;
                 case "2":
@@ -65,12 +70,17 @@ public class AuthInterface extends UserInterface {
                     String email = myObj.nextLine();
                     System.out.print("taxid > ");
                     String taxid = myObj.nextLine();
-                    user = operation.signUpCustomer(name, username, password, state, phone, email, taxid);
-                    if (user.isEmpty()) {
-                        System.err.println("ERROR: login failed.");
-                    } else {
-                        TraderInterface.display(connection, user);
-                        userChoice = "0";
+
+                    try {
+                        user = operation.signUpCustomer(name, username, password, state, phone, email, taxid);
+                        if (user.isEmpty()) {
+                            System.err.println("ERROR: login failed.");
+                        } else {
+                            TraderInterface.display(connection, user);
+                            userChoice = "0";
+                        }
+                    } catch (Exception e) {
+                        System.err.println(e);
                     }
                     break;
                 case "3":
@@ -79,13 +89,18 @@ public class AuthInterface extends UserInterface {
                     username = myObj.nextLine();
                     System.out.print("password > ");
                     password = myObj.nextLine();
-                    user = operation.signInManager(username, password);
-                    if (user.isEmpty()) {
-                        System.err.println("ERROR: login failed.");
-                    } else {
-                        // uncomment the line below when ManagerInterface is implemented
-                        ManagerInterface.display(connection, user);
-                        userChoice = "0";
+
+                    try {
+                        user = operation.signInManager(username, password);
+                        if (user.isEmpty()) {
+                            System.err.println("ERROR: login failed.");
+                        } else {
+                            // uncomment the line below when ManagerInterface is implemented
+                            ManagerInterface.display(connection, user);
+                            userChoice = "0";
+                        }
+                    } catch (Exception e) {
+                        System.err.println(e);
                     }
                     break;
                 case "4":

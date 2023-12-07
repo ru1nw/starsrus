@@ -1,12 +1,12 @@
 package main.Template;
 
-import oracle.jdbc.OracleConnection;
-
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+
+import oracle.jdbc.OracleConnection;
 
 public abstract class UserOperation {
     protected OracleConnection connection;
@@ -66,7 +66,6 @@ public abstract class UserOperation {
                 int resultAid = resultSet.getInt("aid");
                 out.add(resultAid);
             }
-
             return out;
         }
     }

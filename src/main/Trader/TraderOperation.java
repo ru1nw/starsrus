@@ -277,9 +277,6 @@ public class TraderOperation extends UserOperation {
 
                 return transactionHistory.toString();
             }
-        } catch (Exception e) {
-            System.err.println(e);
-            return "";
         }
     }
 
@@ -304,9 +301,6 @@ public class TraderOperation extends UserOperation {
 
                 return transactionHistory.toString();
             }
-        } catch (Exception e) {
-            System.err.println(e);
-            return "";
         }
     }
 
@@ -389,9 +383,6 @@ public class TraderOperation extends UserOperation {
 
                 return symbols;
             }
-        } catch (Exception e) {
-            System.err.println(e);
-            return null;
         }
     }
 }

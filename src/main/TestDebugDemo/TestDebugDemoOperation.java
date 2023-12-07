@@ -14,6 +14,7 @@ public class TestDebugDemoOperation extends UserOperation {
     2. Close Market for the Day
     3. Set a new price for a stock
     4. Set a new date to be today's date
+    5. Set monthly interest rate
     0. Back to Authentication
     */
 
@@ -30,8 +31,6 @@ public class TestDebugDemoOperation extends UserOperation {
                     "WHERE key = 'isMarketOpen'"
                 )
             ) {}
-        } catch (Exception e) {
-            System.err.println(e);
         }
     }
 
@@ -56,8 +55,6 @@ public class TestDebugDemoOperation extends UserOperation {
                     "WHERE symbol = '" + stock + "'"
                 )
             ) {}
-        } catch (Exception e) {
-            System.err.println(e);
         }
     }
 
@@ -71,8 +68,19 @@ public class TestDebugDemoOperation extends UserOperation {
                     "WHERE key = 'currentDate'"
                 )
             ) {}
-        } catch (Exception e) {
-            System.err.println(e);
+        }
+    }
+
+    // 5 set rate
+    public void setRate(String rate) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "UPDATE Settings " +
+                    "SET floatvalue = " + rate + " " +
+                    "WHERE key = 'monthlyInterestRate'"
+                )
+            ) {}
         }
     }
 }

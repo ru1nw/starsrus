@@ -1,8 +1,8 @@
 package main.Template;
 
-import oracle.jdbc.OracleConnection;
-
 import java.util.Scanner;
+
+import oracle.jdbc.OracleConnection;
 
 public abstract class UserInterface {
     private static String options = "User interface template";

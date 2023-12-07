@@ -4,8 +4,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import main.Template.UserOperation;
 import oracle.jdbc.OracleConnection;
+
+import main.Template.UserOperation;
 
 public class MovieOperation extends UserOperation {
     /*
@@ -37,8 +38,6 @@ public class MovieOperation extends UserOperation {
                     );
                 }
             }
-        } catch (Exception e) {
-            System.err.println(e);
         }
     }
 
@@ -63,8 +62,6 @@ public class MovieOperation extends UserOperation {
                     );
                 }
             }
-        } catch (Exception e) {
-            System.err.println(e);
         }
     }
 
@@ -86,8 +83,6 @@ public class MovieOperation extends UserOperation {
                     );
                 }
             }
-        } catch (Exception e) {
-            System.err.println(e);
         }
     }
 }

@@ -2,8 +2,6 @@ package main.TestDebugDemo;
 
 import oracle.jdbc.OracleConnection;
 
-import java.sql.SQLException;
-
 import main.Template.UserInterface;
 
 public class TestDebugDemoInterface extends UserInterface {
@@ -14,6 +12,7 @@ public class TestDebugDemoInterface extends UserInterface {
         2. Close Market for the Day
         3. Set a new price for a stock
         4. Set a new date to be today's date
+        5. Set monthly interest rate
         0. Back to Authentication
         >>>\s""";
     
@@ -24,14 +23,14 @@ public class TestDebugDemoInterface extends UserInterface {
         while (!userChoice.equals("0")) {
             System.out.print(options);
             userChoice = myObj.nextLine();
-            String stock, price, date;
+            String stock, price, date, rate;
             switch (userChoice) {
                 case "1":
                     System.out.println("Open Market for the Day");
 
                     try {
                         operation.openMarket();
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         System.err.println(e);
                     }
                     break;
@@ -40,7 +39,7 @@ public class TestDebugDemoInterface extends UserInterface {
 
                     try {
                         operation.closeMarket();
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         System.err.println(e);
                     }
                     break;
@@ -53,7 +52,7 @@ public class TestDebugDemoInterface extends UserInterface {
 
                     try {
                         operation.setStockPrice(stock, price);
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
                         System.err.println(e);
                     }
                     break;
@@ -64,7 +63,18 @@ public class TestDebugDemoInterface extends UserInterface {
 
                     try {
                         operation.setDate(date);
-                    } catch (SQLException e) {
+                    } catch (Exception e) {
+                        System.err.println(e);
+                    }
+                    break;
+                case "5":
+                    System.out.println("Set monthly interest rate");
+                    System.out.print("new rate (format: 0.XX) > ");
+                    rate = myObj.nextLine();
+
+                    try {
+                        operation.setRate(rate);
+                    } catch (Exception e) {
                         System.err.println(e);
                     }
                     break;

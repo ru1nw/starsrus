@@ -24,12 +24,12 @@ public class ManagerOperation extends UserOperation {
     }
 
     // 1 add interest
-    public String addInterest() throws SQLException {
+    public final String addInterest() throws SQLException {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
                     "SELECT aid, AVG(closingbalance)*(" +
-                        "SELECT floatValue FROM Settings WHERE key = 'MonthlyInterestRate'" +
+                        "SELECT floatValue FROM Settings WHERE key = 'monthlyInterestRate'" +
                     ") AS interest " +
                     "FROM DailyClosingBalances " +
                     "GROUP BY aid"
@@ -44,13 +44,10 @@ public class ManagerOperation extends UserOperation {
                 }
                 return transactionHistory.toString();
             }
-        } catch (Exception e) {
-            System.err.println(e);
-            return null;
         }
     }
 
-    public void accrueInterest(String aid, String interest) throws SQLException {
+    public final void accrueInterest(String aid, String interest) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
@@ -59,9 +56,8 @@ public class ManagerOperation extends UserOperation {
                     "WHERE aid = " + aid
                 )
             ) {}
-        } catch (Exception e) {
-            System.err.println(e);
         }
+        
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
@@ -73,9 +69,8 @@ public class ManagerOperation extends UserOperation {
                     ")"
                 )
             ) {}
-        } catch (Exception e) {
-            System.err.println(e);
         }
+        
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
@@ -87,23 +82,21 @@ public class ManagerOperation extends UserOperation {
                     ")"
                 )
             ) {}
-        } catch (Exception e) {
-            System.err.println(e);
         }
     }
 
     // 2 generate monthly statement
-    public String getStatement(String username) throws SQLException {return "";}
+    public final String getStatement(String username) throws SQLException {return "";}
 
     // 3 list active customer
-    public String getActiveCustomer() throws SQLException {return "";}
+    public final String getActiveCustomer() throws SQLException {return "";}
 
     // 4 generate DTER
-    public String getDTER() throws SQLException {return "";}
+    public final String getDTER() throws SQLException {return "";}
 
     // 5 customer report
-    public String getCustomerReport(String username) throws SQLException {return "";}
+    public final String getCustomerReport(String username) throws SQLException {return "";}
 
     // 6 delete transactions
-    public String deleteTransactions() throws SQLException {return "";}
+    public final String deleteTransactions() throws SQLException {return "";}
 }

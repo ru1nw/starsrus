@@ -4,8 +4,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import main.Template.UserOperation;
 import oracle.jdbc.OracleConnection;
+
+import main.Template.UserOperation;
 
 public class AuthOperation extends UserOperation {
     /*
@@ -18,7 +19,7 @@ public class AuthOperation extends UserOperation {
         super(connection);
     }
 
-    public final String signInCustomer(String username, String password) {
+    public final String signInCustomer(String username, String password) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
@@ -31,14 +32,11 @@ public class AuthOperation extends UserOperation {
                 resultSet.next();
                 return resultSet.getString("username");
             }
-        } catch (Exception e) {
-            System.err.println(e);
         }
-        return "";
     }
 
     public final String signUpCustomer(String name, String username, String password,
-                                              String state, String phone, String email, String taxid) {
+                                        String state, String phone, String email, String taxid) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
@@ -66,15 +64,11 @@ public class AuthOperation extends UserOperation {
                     "VALUES (" + aid + ")"
                 )
             ) {}
-        } catch (Exception e) {
-            System.err.println(e);
-            return "";
         }
-
         return signInCustomer(username, password);
     }
 
-    public final String signInManager(String username, String password) {
+    public final String signInManager(String username, String password) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
@@ -87,9 +81,6 @@ public class AuthOperation extends UserOperation {
                 resultSet.next();
                 return resultSet.getString("username");
             }
-        } catch (Exception e) {
-            System.err.println(e);
         }
-        return "";
     }
 }

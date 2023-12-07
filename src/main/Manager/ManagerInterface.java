@@ -1,10 +1,7 @@
 package main.Manager;
 
-import java.sql.SQLException;
-
 import oracle.jdbc.OracleConnection;
 
-import main.Movie.MovieInterface;
 import main.Template.UserInterface;
 
 public class ManagerInterface extends UserInterface {
