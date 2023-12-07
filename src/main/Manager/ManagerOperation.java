@@ -171,5 +171,13 @@ public class ManagerOperation extends UserOperation {
     }
 
     // 6 delete transactions
-    public final String deleteTransactions() throws SQLException {return "";}
+    public final void deleteTransactions() throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            try (
+               ResultSet resultSet = statement.executeQuery(
+                    "DELETE FROM Transactions"
+                )
+            ) {}
+        }
+    }
 }

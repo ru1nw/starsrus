@@ -83,9 +83,15 @@ public class ManagerInterface extends UserInterface {
                 case "6":
                     System.out.println("Delete Transactions");
 
+                    System.out.println("Are you sure you want to delete all transactions?");
+                    System.out.print("y/N > ");
+                    String deleteAll = myObj.nextLine();
+
+                    if (!deleteAll.equalsIgnoreCase("y")) continue;
+
                     try {
-                        String result = operation.deleteTransactions();
-                        System.out.println(result);
+                        operation.deleteTransactions();
+                        System.out.println("Successfully deleted all transactions");
                     } catch (Exception e) {
                         System.err.println(e);
                     }
