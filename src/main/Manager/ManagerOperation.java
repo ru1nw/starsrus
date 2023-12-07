@@ -28,30 +28,39 @@ public class ManagerOperation extends UserOperation {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
-                    "SELECT aid, AVG(closingbalance) AS avgbalance " +
+                    "SELECT aid, AVG(closingbalance)*(" +
+                        "SELECT floatValue FROM Settings WHERE key = 'MonthlyInterestRate'" +
+                    ") AS interest " +
                     "FROM DailyClosingBalances " +
                     "GROUP BY aid"
                 )
             ) {
+                StringBuilder transactionHistory = new StringBuilder("aid\tinterest\n");
                 while (resultSet.next()) {
                     String aid = resultSet.getString("aid");
-                    String avgbalance = resultSet.getString("avgbalance");
-                    accrueInterest(aid, avgbalance);
+                    String interest = resultSet.getString("interest");
+                    accrueInterest(aid, interest);
+                    transactionHistory.append(aid + "\t" + interest);
                 }
+                return transactionHistory.toString();
             }
+        } catch (Exception e) {
+            System.err.println(e);
+            return null;
         }
-        return "";
     }
 
-    public void accrueInterest(String aid, String avgbalance) throws SQLException {
+    public void accrueInterest(String aid, String interest) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
                     "UPDATE Accounts " +
-                    "SET balance = ((SELECT balance FROM Accounts WHERE aid = " + aid + ") + " + avgbalance + ") " +
+                    "SET balance = ((SELECT balance FROM Accounts WHERE aid = " + aid + ") + " + interest + ") " +
                     "WHERE aid = " + aid
                 )
             ) {}
+        } catch (Exception e) {
+            System.err.println(e);
         }
         try (Statement statement = connection.createStatement()) {
             try (
@@ -64,6 +73,8 @@ public class ManagerOperation extends UserOperation {
                     ")"
                 )
             ) {}
+        } catch (Exception e) {
+            System.err.println(e);
         }
         try (Statement statement = connection.createStatement()) {
             try (
@@ -71,11 +82,13 @@ public class ManagerOperation extends UserOperation {
                     "INSERT INTO AccrueInterests (tid, amt, result) " +
                     "VALUES (" +
                         "(SELECT MAX(tid) FROM Transactions), " +
-                        avgbalance + ", " +
-                        "(SELECT balance FROM Accounts WHERE aid = " + aid + ") + " + avgbalance +
+                        interest + ", " +
+                        "(SELECT balance FROM Accounts WHERE aid = " + aid + ")" +
                     ")"
                 )
             ) {}
+        } catch (Exception e) {
+            System.err.println(e);
         }
     }
 
