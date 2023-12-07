@@ -13,16 +13,16 @@ public abstract class UserOperation {
         this.connection = connection;
     }
 
-    public final Integer getNextID(String tableName) throws SQLException {
+    public final Integer getNextID(String tableName, String idField) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
-                    "SELECT COUNT(*) as count " +
+                    "SELECT MAX(T." + idField + ") as maxID " +
                     "FROM " + tableName + " T"
                 )
             ) {
                 resultSet.next();
-                return resultSet.getInt("count")+1;
+                return resultSet.getInt("maxID")+1;
             }
         }
     }
