@@ -72,6 +72,17 @@ public class TraderInterface extends UserInterface {
                     break;
                 case "3":
                     System.out.println("Buy");
+                    try {
+                        operation.buyStocks(user, "SKB", 1.0);
+                    } catch (SQLException e) {
+                        switch (e.getErrorCode()) {
+                            case 2290:
+                                System.err.println("Error: cannot withdraw more than account balance");
+                                break;
+                            default:
+                                System.err.println(e);
+                        }
+                    }
                     break;
                 case "4":
                     System.out.println("Sell");
