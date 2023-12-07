@@ -5,6 +5,7 @@ import java.util.Scanner;
 import oracle.jdbc.OracleConnection;
 
 import main.Template.UserInterface;
+import main.TestDebugDemo.TestDebugDemoInterface;
 import main.Trader.TraderInterface;
 
 public class AuthInterface extends UserInterface {
@@ -15,6 +16,7 @@ public class AuthInterface extends UserInterface {
         1. Customer sign in
         2. Customer register
         3. Manager sign in
+        4. Test Debug Demo Operations
         0. Exit
         >>>\s""";
     
@@ -85,6 +87,9 @@ public class AuthInterface extends UserInterface {
                         // ManagerInterface.display(connection, user);
                         userChoice = "0";
                     }
+                    break;
+                case "4":
+                    TestDebugDemoInterface.display(connection);
                     break;
                 case "0":
                     System.out.println("Exit");
