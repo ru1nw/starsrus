@@ -2,9 +2,11 @@ package main.TestDebugDemo;
 
 import oracle.jdbc.OracleConnection;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Calendar;
 
 import main.Template.UserOperation;
 
@@ -78,11 +80,58 @@ public class TestDebugDemoOperation extends UserOperation {
 
     // 4 set date
     public void setDate(String date) throws SQLException {
+        Calendar dateIterator = Calendar.getInstance();
+        Date oldDate, newDate;
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT dateValue " +
+                    "FROM Settings " +
+                    "WHERE key = 'currentDate'"
+                )
+            ) {
+                resultSet.next();
+                oldDate = resultSet.getDate("dateValue");
+            }
+        }
+        newDate = Date.valueOf(date);
+        if (oldDate.before(newDate)) { // if skipping to future
+            // insert more daily closing prices
+            dateIterator.setTime(oldDate);
+            while (!newDate.equals(dateIterator.getTime())) {
+                dateIterator.add(Calendar.DATE, 1);
+                Date currentDate = new Date(dateIterator.getTime().getTime());
+                try (Statement statement = connection.createStatement()) {
+                    try (
+                        ResultSet resultSet = statement.executeQuery(
+                            "INSERT INTO DailyClosingBalances (aid, closingDate, closingBalance) " +
+                            "SELECT aid, DATE '" + currentDate.toString() + "', balance " +
+                            "FROM Accounts"
+                        )
+                    ) {}
+                }
+            }
+        } else if (oldDate.after(newDate)) { // if rewinding to past
+            // delete daily closing prices
+            dateIterator.setTime(oldDate);
+            while (!newDate.equals(dateIterator.getTime())) {
+                Date currentDate = new Date(dateIterator.getTime().getTime());
+                try (Statement statement = connection.createStatement()) {
+                    try (
+                        ResultSet resultSet = statement.executeQuery(
+                            "DELETE FROM DailyClosingBalances " +
+                            "WHERE closingDate = DATE '" + currentDate.toString() + "'"
+                        )
+                    ) {}
+                }
+                dateIterator.add(Calendar.DATE, -1);
+            }
+        }
         try (Statement statement = connection.createStatement()) {
             try (
                 ResultSet resultSet = statement.executeQuery(
                     "UPDATE Settings " +
-                    "SET datevalue = DATE '" + date + "' " +
+                    "SET dateValue = DATE '" + date + "' " +
                     "WHERE key = 'currentDate'"
                 )
             ) {}
@@ -95,7 +144,7 @@ public class TestDebugDemoOperation extends UserOperation {
             try (
                 ResultSet resultSet = statement.executeQuery(
                     "UPDATE Settings " +
-                    "SET floatvalue = " + rate + " " +
+                    "SET floatValue = " + rate + " " +
                     "WHERE key = 'monthlyInterestRate'"
                 )
             ) {}
