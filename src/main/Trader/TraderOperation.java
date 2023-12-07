@@ -3,6 +3,7 @@ package main.Trader;
 import main.Template.UserOperation;
 import oracle.jdbc.OracleConnection;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -26,31 +27,56 @@ public class TraderOperation extends UserOperation {
 
     // 1 deposit
     public void depositFunds(String username, Double amount) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            String marketAID = this.getMarketAccount(username, statement);
-
-            try (
-                ResultSet resultSet = statement.executeQuery(
-                    "UPDATE Accounts A " +
-                    "SET A.balance = A.balance + " + amount.toString() + " " +
-                    "WHERE A.aid = '" + marketAID + "'"
-                )
-            ) {}
-        }
+        updateBalance(username, amount, "Deposits");
     }
 
     // 2 withdrawal
     public void withdrawFunds(String username, Double amount) throws SQLException {
+        updateBalance(username, -1*amount, "Withdraws");
+    }
+
+    private void updateBalance(String username, Double amountDifference, String transactionTable) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             String marketAID = this.getMarketAccount(username, statement);
 
+            Double currentBalance;
+            try {
+                currentBalance = getCurrentBalance(username);
+            } catch (SQLException e) {
+                System.out.println(e);
+                return;
+            }
+            
+            Double newBalance = currentBalance + amountDifference;
             try (
                 ResultSet resultSet = statement.executeQuery(
                     "UPDATE Accounts A " +
-                    "SET A.balance = A.balance - " + amount.toString() + " " +
+                    "SET A.balance = " + newBalance + " " +
                     "WHERE A.aid = '" + marketAID + "'"
                 )
             ) {}
+
+            Integer tid = getNextID("Transactions", "tid");
+
+            // TODO: Fetch current date from database somewhere
+            Date currentDate = new Date(2023-1900, 12-1, 6);
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO Transactions T (tid, aid, tdate) " +
+                    "VALUES (" + tid + ", " + marketAID + ", DATE '" + currentDate + "')"
+                )
+            ) {}
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO " + transactionTable + " T (tid, amt, result) " +
+                    "VALUES (" + tid + ", " + Math.abs(amountDifference) + ", " + newBalance + ")"
+                )
+            ) {}
+
         }
     }
 
