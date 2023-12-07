@@ -93,7 +93,8 @@ public class TraderInterface extends UserInterface {
                     System.out.println("Show stock account transaction history");
 
                     try {
-                        operation.getTransactionHistory(user);
+                        String history = operation.getTransactionHistory(user);
+                        System.out.println(history);
                     } catch (SQLException e) {
                         System.err.println(e);
                     }

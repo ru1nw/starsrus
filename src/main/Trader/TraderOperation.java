@@ -99,10 +99,8 @@ public class TraderOperation extends UserOperation {
     }
 
     // 7 stock account transaction history
-    public void getTransactionHistory(String username) throws SQLException {
+    public String getTransactionHistory(String username) throws SQLException {
         try (Statement statement = connection.createStatement()) {
-            String marketAID = this.getMarketAccount(username, statement);
-
             try (
                 // stock accounts can only buy and sell
                 ResultSet resultSet = statement.executeQuery(
@@ -119,16 +117,17 @@ public class TraderOperation extends UserOperation {
                     "WHERE uname = '" + username + "')"
                 )
             ) {
-                System.out.println("Date\t\tTransaction Type\tStock Symbol\t# of Shares\tPrice");
+                StringBuilder transactionHistory = new StringBuilder("Date\t\tTransaction Type\tStock Symbol\t# of Shares\tPrice\n");
                 while (resultSet.next()) {
-                    System.out.println(
-                        resultSet.getString("tdate") + "\t"
-                        + resultSet.getString("op") + "\t\t\t"
-                        + resultSet.getString("ssymbol") + "\t\t"
-                        + resultSet.getString("amt") + "\t\t"
-                        + resultSet.getString("price")
-                    );
+                    transactionHistory
+                            .append(resultSet.getString("tdate")).append("\t")
+                            .append(resultSet.getString("op")).append("\t\t\t")
+                            .append(resultSet.getString("ssymbol")).append("\t\t")
+                            .append(resultSet.getString("amt")).append("\t\t")
+                            .append(resultSet.getString("price")).append("\n");
                 }
+
+                return transactionHistory.toString();
             }
         }
     }
