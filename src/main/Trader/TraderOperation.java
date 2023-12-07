@@ -78,56 +78,94 @@ public class TraderOperation extends UserOperation {
     }
 
     // 3 buy stocks
-    public void buyStocks(String username, String stockSymbol, Double amount) throws SQLException {
+    public Double buyStocks(String username, String stockSymbol, Double amount) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             Integer marketAID = this.getMarketAccount(username, statement);
             Integer stockAID = this.getOrCreateStockAccount(username, stockSymbol, statement);
 
+            Double currentPrice = getStockPrice(stockSymbol, statement);
+            Double totalCost = currentPrice*amount+20; // included $20 transaction fee
+
             try (
-                ResultSet priceSet = statement.executeQuery(
-                    "SELECT price " +
-                    "FROM StarStocks S " +
-                    "WHERE S.symbol = '" + stockSymbol + "'"
+                ResultSet resultSet = statement.executeQuery(
+                    "UPDATE Accounts A " +
+                    "SET A.balance = A.balance - " + totalCost + " " +
+                    "WHERE A.aid = " + marketAID
+                )
+            ) {}
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "UPDATE Accounts A " +
+                    "SET A.balance = A.balance + " + amount + " " +
+                    "WHERE A.aid = " + stockAID
+                )
+            ) {}
+
+            Integer buyTid = getNextID("Transactions", "tid", statement);
+            Date currentDate = getCurrentDate(statement);
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO Transactions T (tid, aid, tdate) " +
+                    "VALUES (" + buyTid + ", " + stockAID + ", DATE '" + currentDate + "')"
+                )
+            ) {}
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO BUYS (tid, amt, price) " +
+                    "VALUES (" + buyTid + ", " + amount + ", " + currentPrice + ")"
+                )
+            ) {}
+
+            return totalCost;
+        }
+    }
+
+    public String getUserStocks(String username, String stockSymbol) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            Integer stockAID = this.getOrCreateStockAccount(username, stockSymbol, statement);
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT B.buyPrice as price, (B.buyAmt-coalesce(S.sellAmt, 0)) as amt FROM " +
+                    "(SELECT SUM(amt) as buyAmt, price as buyPrice " +
+                    "FROM Buys NATURAL JOIN Transactions " +
+                    "WHERE aid = " + stockAID + " AND tid NOT IN (SELECT target as tid from Cancels)" +
+                    "GROUP BY price) B " +
+                    "FULL JOIN " +
+                    "(SELECT SUM(amt) as sellAmt, bprice as buyPrice " +
+                    "FROM Sells NATURAL JOIN Transactions " +
+                    "WHERE aid = " + stockAID + " AND tid NOT IN (SELECT target as tid from Cancels) " +
+                    "GROUP BY bprice) S " +
+                    "ON B.buyPrice = S.buyPrice"
                 )
             ) {
-                priceSet.next();
-                Double currentPrice = priceSet.getDouble("price");
+                StringBuilder purchasedStocks = new StringBuilder("Amount\tPurchase Price\n");
+                while (resultSet.next()) {
+                    purchasedStocks
+                            .append(resultSet.getString("amt")).append("\t")
+                            .append(resultSet.getString("price")).append("\n");
+                }
 
-                try (
-                    ResultSet resultSet = statement.executeQuery(
-                        "UPDATE Accounts A " +
-                        "SET A.balance = A.balance - " + currentPrice*amount + " " +
-                        "WHERE A.aid = " + marketAID
-                    )
-                ) {}
-
-                try (
-                    ResultSet resultSet = statement.executeQuery(
-                        "UPDATE Accounts A " +
-                        "SET A.balance = A.balance + " + amount + " " +
-                        "WHERE A.aid = " + stockAID
-                    )
-                ) {}
-
-                Integer buyTid = getNextID("Transactions", "tid", statement);
-                Date currentDate = getCurrentDate(statement);
-
-                try (
-                    ResultSet resultSet = statement.executeQuery(
-                        "INSERT " +
-                        "INTO Transactions T (tid, aid, tdate) " +
-                        "VALUES (" + buyTid + ", " + stockAID + ", DATE '" + currentDate + "')"
-                    )
-                ) {}
-
-                try (
-                    ResultSet resultSet = statement.executeQuery(
-                        "INSERT " +
-                        "INTO BUYS (tid, amt, price) " +
-                        "VALUES (" + buyTid + ", " + amount + ", " + currentPrice + ")"
-                    )
-                ) {}
+                return purchasedStocks.toString();
             }
+        }
+    }
+
+    private Double getStockPrice(String stockSymbol, Statement statement) throws SQLException {
+        try (
+            ResultSet priceSet = statement.executeQuery(
+                "SELECT price " +
+                "FROM StarStocks S " +
+                "WHERE S.symbol = '" + stockSymbol + "'"
+            )
+        ) {
+            priceSet.next();
+            return priceSet.getDouble("price");
         }
     }
 
@@ -184,7 +222,7 @@ public class TraderOperation extends UserOperation {
     }
 
     // 8 current price of a stock and the actor profile
-    public void getStarStocks() throws SQLException {
+    public String getAllStocks() throws SQLException {
         try (Statement statement = connection.createStatement()) {
 
             try (
@@ -193,15 +231,16 @@ public class TraderOperation extends UserOperation {
                     "FROM StarStocks"
                 )
             ) {
-                System.out.println("Actor Name\t\tActor Date of Birth\tStock Symbol\tPrice");
+                StringBuilder transactionHistory = new StringBuilder("Stock Symbol\tActor Name\t\tActor DOB\tPrice\n");
                 while (resultSet.next()) {
-                    System.out.println(
-                        resultSet.getString("name") + "\t"
-                        + resultSet.getString("dob") + "\t\t"
-                        + resultSet.getString("symbol") + "\t\t"
-                        + resultSet.getString("price")
-                    );
+                    transactionHistory
+                            .append(resultSet.getString("symbol")).append("\t\t")
+                            .append(resultSet.getString("name")).append("\t")
+                            .append(resultSet.getString("dob")).append("\t")
+                            .append(resultSet.getString("price")).append("\n");
                 }
+
+                return transactionHistory.toString();
             }
         }
     }
