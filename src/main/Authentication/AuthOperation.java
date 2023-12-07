@@ -49,7 +49,7 @@ public class AuthOperation extends UserOperation {
                 )
             ) {}
 
-            Integer aid = getNextID("Accounts", "aid");
+            Integer aid = getNextID("Accounts", "aid", statement);
 
             try (
                 ResultSet resultSet = statement.executeQuery(

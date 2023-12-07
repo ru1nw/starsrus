@@ -56,7 +56,7 @@ public class TraderOperation extends UserOperation {
                 )
             ) {}
 
-            Integer tid = getNextID("Transactions", "tid");
+            Integer tid = getNextID("Transactions", "tid", statement);
 
             // TODO: Fetch current date from database somewhere
             Date currentDate = new Date(2023-1900, 12-1, 6);
