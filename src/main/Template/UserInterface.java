@@ -3,11 +3,11 @@ package main.Template;
 import java.util.Scanner;
 
 public abstract class UserInterface {
-    private static String options;
+    private static String options = "User interface template";
+    protected static Scanner myObj = new Scanner(System.in);;
     
     public static void display() {
-        Scanner myObj = new Scanner(System.in);
-        System.out.println("User interface template");
+        System.out.println(options);
         String userChoice = myObj.nextLine();
         switch (userChoice) {
             case "1":

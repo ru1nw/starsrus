@@ -133,6 +133,29 @@ public class TraderOperation extends UserOperation {
         }
     }
 
+    // 8 current price of a stock and the actor profile
+    public void getStarStocks() throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT symbol, price, name, TO_CHAR(dob, 'YYYY-MM-DD') AS dob " +
+                    "FROM StarStocks"
+                )
+            ) {
+                System.out.println("Actor Name\t\tActor Date of Birth\tStock Symbol\tPrice");
+                while (resultSet.next()) {
+                    System.out.println(
+                        resultSet.getString("name") + "\t"
+                        + resultSet.getString("dob") + "\t\t"
+                        + resultSet.getString("symbol") + "\t\t"
+                        + resultSet.getString("price")
+                    );
+                }
+            }
+        }
+    }
+
     private String getMarketAccount(String username, Statement statement) throws SQLException {
         try (
             ResultSet resultSet = statement.executeQuery(
