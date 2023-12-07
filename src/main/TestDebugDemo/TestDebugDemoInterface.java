@@ -2,6 +2,8 @@ package main.TestDebugDemo;
 
 import oracle.jdbc.OracleConnection;
 
+import java.sql.SQLException;
+
 import main.Template.UserInterface;
 
 public class TestDebugDemoInterface extends UserInterface {
@@ -22,18 +24,49 @@ public class TestDebugDemoInterface extends UserInterface {
         while (!userChoice.equals("0")) {
             System.out.print(options);
             userChoice = myObj.nextLine();
+            String stock, price, date;
             switch (userChoice) {
                 case "1":
                     System.out.println("Open Market for the Day");
+
+                    try {
+                        operation.openMarket();
+                    } catch (SQLException e) {
+                        System.err.println(e);
+                    }
                     break;
                 case "2":
                     System.out.println("Close Market for the Day");
+
+                    try {
+                        operation.closeMarket();
+                    } catch (SQLException e) {
+                        System.err.println(e);
+                    }
                     break;
                 case "3":
                     System.out.println("Set a new price for a stock");
+                    System.out.print("stock stymbol > ");
+                    stock = myObj.nextLine();
+                    System.out.print("new price > ");
+                    price = myObj.nextLine();
+
+                    try {
+                        operation.setStockPrice(stock, price);
+                    } catch (SQLException e) {
+                        System.err.println(e);
+                    }
                     break;
                 case "4":
                     System.out.println("Set a new date to be today's date");
+                    System.out.print("new date (format: yyyy-mm-dd) > ");
+                    date = myObj.nextLine();
+
+                    try {
+                        operation.setDate(date);
+                    } catch (SQLException e) {
+                        System.err.println(e);
+                    }
                     break;
                 case "0":
                     System.out.println("Back to Authentication");
