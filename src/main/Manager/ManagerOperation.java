@@ -252,7 +252,7 @@ public class ManagerOperation extends UserOperation {
                     "WHERE profit*(1+interest*1) >= 10000"
                 )
             ) {
-                StringBuilder dter = new StringBuilder("Username\t\tProfit\tState\n");
+                StringBuilder dter = new StringBuilder("Username\t\tProfit\t\tState\n");
                 while (resultSet.next()) {
                     dter
                             .append(resultSet.getString("uname")).append("\t")

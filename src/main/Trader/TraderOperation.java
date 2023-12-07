@@ -44,7 +44,7 @@ public class TraderOperation extends UserOperation {
             try {
                 currentBalance = getCurrentBalance(username);
             } catch (SQLException e) {
-                System.out.println(e);
+                System.err.println(e);
                 return;
             }
             
@@ -492,7 +492,6 @@ public class TraderOperation extends UserOperation {
                     return resultSet.getInt("aid");
                 }
             } else {
-                System.out.println("CREATED NEW STOCK ACCOUNT");
                 Integer aid = getNextID("Accounts", "aid", statement);
 
                 try (
