@@ -3,7 +3,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 import oracle.jdbc.OracleConnection;
-
+import main.Movie.MovieInterface;
 import main.Template.UserInterface;
 
 public class TraderInterface extends UserInterface {
@@ -23,7 +23,6 @@ public class TraderInterface extends UserInterface {
         >>>\s""";
     
     public static void display(OracleConnection connection, String user) {
-        Scanner myObj = new Scanner(System.in);
         String userChoice = "";
         TraderOperation operation = new TraderOperation(connection);
 
@@ -101,9 +100,16 @@ public class TraderInterface extends UserInterface {
                     break;
                 case "8":
                     System.out.println("List current price of a stock and the actor profile");
+
+                    try {
+                        operation.getStarStocks();
+                    } catch (SQLException e) {
+                        System.err.println(e);
+                    }
                     break;
                 case "9":
                     System.out.println("List movie information");
+                    MovieInterface.display(connection);
                     break;
                 case "0":
                     System.out.println("Logout");
@@ -112,6 +118,5 @@ public class TraderInterface extends UserInterface {
                     System.out.println("Please enter a number between 0 and 9 (no leading zeros)");
             }
         }
-        myObj.close();
     }
 }
