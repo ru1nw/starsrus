@@ -55,7 +55,7 @@ public class AuthOperation extends UserOperation {
                 ResultSet resultSet = statement.executeQuery(
                     "INSERT " +
                     "INTO Accounts (aid, balance, uname) " +
-                    "VALUES ('" + aid + "', 0, '" + username + "')"
+                    "VALUES (" + aid + ", 1000, '" + username + "')" // initial deposit of $1000 in market account
                 )
             ) {}
 
@@ -63,7 +63,7 @@ public class AuthOperation extends UserOperation {
                 ResultSet resultSet = statement.executeQuery(
                     "INSERT " +
                     "INTO MarketAccounts (aid) " +
-                    "VALUES ('" + aid + "')"
+                    "VALUES (" + aid + ")"
                 )
             ) {}
         } catch (Exception e) {
