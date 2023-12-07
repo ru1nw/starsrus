@@ -7,6 +7,7 @@ import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 public class TraderOperation extends UserOperation {
     /*
@@ -55,6 +56,8 @@ public class TraderOperation extends UserOperation {
                     "WHERE A.aid = " + marketAID
                 )
             ) {}
+
+            if (transactionTable == null) return;
 
             Integer tid = getNextID("Transactions", "tid", statement);
             Date currentDate = getCurrentDate(statement);
@@ -125,7 +128,17 @@ public class TraderOperation extends UserOperation {
         }
     }
 
-    public String getUserStocks(String username, String stockSymbol) throws SQLException {
+    static class OwnedShare {
+        Double price;
+        Double amount;
+
+        public OwnedShare(Double price, Double amount) {
+            this.price = price;
+            this.amount = amount;
+        }
+    }
+
+    public ArrayList<OwnedShare> getOwnedShares(String username, String stockSymbol) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             Integer stockAID = this.getOrCreateStockAccount(username, stockSymbol, statement);
 
@@ -144,14 +157,12 @@ public class TraderOperation extends UserOperation {
                     "ON B.buyPrice = S.buyPrice"
                 )
             ) {
-                StringBuilder purchasedStocks = new StringBuilder("Amount\tPurchase Price\n");
+                ArrayList<OwnedShare> ownedShares = new ArrayList<>();
                 while (resultSet.next()) {
-                    purchasedStocks
-                            .append(resultSet.getString("amt")).append("\t")
-                            .append(resultSet.getString("price")).append("\n");
+                    ownedShares.add(new OwnedShare(resultSet.getDouble("price"), resultSet.getDouble("amt")));
                 }
 
-                return purchasedStocks.toString();
+                return ownedShares;
             }
         }
     }
@@ -166,6 +177,52 @@ public class TraderOperation extends UserOperation {
         ) {
             priceSet.next();
             return priceSet.getDouble("price");
+        }
+    }
+
+    public Double sellStocks(String username, String stockSymbol, Double buyPrice, Double amount) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            Integer marketAID = this.getMarketAccount(username, statement);
+            Integer stockAID = this.getOrCreateStockAccount(username, stockSymbol, statement);
+
+            Double currentPrice = getStockPrice(stockSymbol, statement);
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "UPDATE Accounts A " +
+                    "SET A.balance = A.balance + " + (currentPrice*amount-20) + " " +
+                    "WHERE A.aid = " + marketAID
+                )
+            ) {}
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "UPDATE Accounts A " +
+                    "SET A.balance = A.balance - " + amount + " " +
+                    "WHERE A.aid = " + stockAID
+                )
+            ) {}
+
+            Integer sellTid = getNextID("Transactions", "tid", statement);
+            Date currentDate = getCurrentDate(statement);
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO Transactions T (tid, aid, tdate) " +
+                    "VALUES (" + sellTid + ", " + stockAID + ", DATE '" + currentDate + "')"
+                )
+            ) {}
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO SELLS (tid, amt, sprice, bprice) " +
+                    "VALUES (" + sellTid + ", " + amount + ", " + currentPrice + ", " + buyPrice + ")"
+                )
+            ) {}
+
+            return (currentPrice-buyPrice)*amount-20;
         }
     }
 
@@ -193,7 +250,8 @@ public class TraderOperation extends UserOperation {
             try (
                 // stock accounts can only buy and sell
                 ResultSet resultSet = statement.executeQuery(
-                    "SELECT tid, aid, TO_CHAR(tdate, 'YYYY-MM-DD') AS tdate, amt, price, ssymbol, 'buy' AS op " +
+                    "SELECT * FROM (" +
+                    "(SELECT tid, aid, TO_CHAR(tdate, 'YYYY-MM-DD') AS tdate, amt, price, ssymbol, 'buy' AS op " +
                     "FROM Transactions NATURAL JOIN Buys NATURAL JOIN StockAccounts " + 
                     "WHERE aid IN (SELECT aid " +
                     "FROM Accounts NATURAL JOIN StockAccounts " +
@@ -203,7 +261,8 @@ public class TraderOperation extends UserOperation {
                     "FROM Transactions NATURAL JOIN Sells NATURAL JOIN StockAccounts " + 
                     "WHERE aid IN (SELECT aid " +
                     "FROM Accounts NATURAL JOIN StockAccounts " +
-                    "WHERE uname = '" + username + "')"
+                    "WHERE uname = '" + username + "'))" +
+                    ") ORDER BY tdate, tid DESC"
                 )
             ) {
                 StringBuilder transactionHistory = new StringBuilder("Date\t\tTransaction Type\tStock Symbol\t# of Shares\tPrice (per share)\n");
@@ -248,7 +307,7 @@ public class TraderOperation extends UserOperation {
     private Integer getMarketAccount(String username, Statement statement) throws SQLException {
         try (
             ResultSet resultSet = statement.executeQuery(
-            "SELECT aid " +
+                "SELECT aid " +
                 "FROM MarketAccounts NATURAL JOIN Accounts " +
                 "WHERE uname = '" + username + "'"
             )
@@ -261,7 +320,7 @@ public class TraderOperation extends UserOperation {
     private Integer getOrCreateStockAccount(String username, String stockSymbol, Statement statement) throws SQLException {
         try (
             ResultSet countResultSet = statement.executeQuery(
-            "SELECT COUNT(aid) as count " +
+                "SELECT COUNT(aid) as count " +
                 "FROM StockAccounts NATURAL JOIN Accounts " +
                 "WHERE uname = '" + username + "' AND ssymbol = '" + stockSymbol + "'"
             )
@@ -272,7 +331,7 @@ public class TraderOperation extends UserOperation {
             if (count >= 1) {
                 try (
                     ResultSet resultSet = statement.executeQuery(
-                    "SELECT aid " +
+                        "SELECT aid " +
                         "FROM StockAccounts NATURAL JOIN Accounts " +
                         "WHERE uname = '" + username + "' AND ssymbol = '" + stockSymbol + "'"
                     )
@@ -281,11 +340,12 @@ public class TraderOperation extends UserOperation {
                     return resultSet.getInt("aid");
                 }
             } else {
+                System.out.println("CREATED NEW STOCK ACCOUNT");
                 Integer aid = getNextID("Accounts", "aid", statement);
 
                 try (
                     ResultSet resultSet = statement.executeQuery(
-                    "INSERT " +
+                        "INSERT " +
                         "INTO Accounts (aid, balance, uname) " +
                         "VALUES (" + aid + ", 0, '" + username + "')"
                     )
@@ -293,13 +353,32 @@ public class TraderOperation extends UserOperation {
 
                 try (
                     ResultSet resultSet = statement.executeQuery(
-                    "INSERT " +
+                        "INSERT " +
                         "INTO StockAccounts (aid, ssymbol) " +
                         "VALUES (" + aid + ", '" + stockSymbol + "')"
                     )
                 ) {}
 
                 return aid;
+            }
+        }
+    }
+
+    public ArrayList<String> getStockAccountSymbols(String username) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT ssymbol " +
+                    "FROM StockAccounts NATURAL JOIN Accounts " +
+                    "WHERE uname = '" + username + "' AND balance > 0"
+                )
+            ) {
+                ArrayList<String> symbols = new ArrayList<>();
+                while (resultSet.next()) {
+                    symbols.add(resultSet.getString("ssymbol"));
+                }
+
+                return symbols;
             }
         }
     }

@@ -1,5 +1,6 @@
 package main.Trader;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import oracle.jdbc.OracleConnection;
 import main.Movie.MovieInterface;
@@ -79,18 +80,18 @@ public class TraderInterface extends UserInterface {
                     }
 
                     System.out.print("Stock symbol > ");
-                    String symbol = myObj.nextLine();
+                    String buySymbol = myObj.nextLine();
                     System.out.print("Shares > ");
-                    Double shares = Double.valueOf(myObj.nextLine());
+                    Double buyShares = Double.valueOf(myObj.nextLine());
 
-                    if (shares <= 0) {
+                    if (buyShares <= 0) {
                         System.err.println("Error: shares must be greater than 0");
-                        return;
+                        continue;
                     }
 
                     try {
-                        Double totalPurchase = operation.buyStocks(user, symbol, shares);
-                        System.out.println("Successfully purchased " + shares + " of " + symbol + " for a total of $" + totalPurchase);
+                        Double totalPurchase = operation.buyStocks(user, buySymbol, buyShares);
+                        System.out.println("Successfully purchased " + buyShares + " of " + buySymbol + " for a total of $" + totalPurchase);
                     } catch (SQLException e) {
                         switch (e.getErrorCode()) {
                             case 2290:
@@ -107,12 +108,89 @@ public class TraderInterface extends UserInterface {
                     break;
                 case "4":
                     System.out.println("Sell");
+
+                    ArrayList<String> ownedStockSymbols;
                     try {
-                        String stocks = operation.getAllStocks();
-                        System.out.println(stocks);
+                        ownedStockSymbols = operation.getStockAccountSymbols(user);
                     } catch (SQLException e) {
                         System.err.println(e);
+                        continue;
                     }
+
+                    System.out.println("Owned stocks: ");
+                    for (String symbol : ownedStockSymbols) {
+                        System.out.println(symbol);
+                    }
+
+                    System.out.print("Stock symbol > ");
+                    String sellSymbol = myObj.nextLine();
+
+                    if (!ownedStockSymbols.contains(sellSymbol)) {
+                        System.err.println("Error: symbol is not owned");
+                        continue;
+                    }
+
+                    ArrayList<TraderOperation.OwnedShare> ownedShares;
+                    try {
+                        ownedShares = operation.getOwnedShares(user, sellSymbol);
+
+                        System.out.println("Owned shares of " + sellSymbol + ":");
+                        System.out.println("Amount\tPurchase Price");
+                        for (TraderOperation.OwnedShare share : ownedShares) {
+                            System.out.print(share.amount + "\t");
+                            System.out.print(share.price + "\n");
+                        }
+                    } catch (SQLException e) {
+                        switch (e.getErrorCode()) {
+                            case 2291:
+                                System.err.println("Error: symbol does not exist");
+                                break;
+                            default:
+                                System.err.println(e);
+                        }
+                        continue;
+                    }
+
+                    System.out.print("Share price > ");
+                    Double sellPrice = Double.valueOf(myObj.nextLine());
+
+                    boolean hasPrice = false;
+                    Double totalShareAmount = 0.0;
+                    for (TraderOperation.OwnedShare share : ownedShares) {
+                        if (share.price.equals(sellPrice)) {
+                            hasPrice = true;
+                            totalShareAmount = share.amount;
+                            break;
+                        }
+                    }
+                    if (!hasPrice) {
+                        System.err.println("Error: purchased price does not exist");
+                        continue;
+                    }
+
+                    System.out.print("Share amount > ");
+                    Double sellAmount = Double.valueOf(myObj.nextLine());
+                    if (sellAmount > totalShareAmount) {
+                        System.err.println("Error: too many shares");
+                        continue;
+                    } else if (sellAmount <= 0) {
+                        System.err.println("Error: shares must be greater than 0");
+                        continue;
+                    }
+
+                    try {
+                        Double profit = operation.sellStocks(user, sellSymbol, sellPrice, sellAmount);
+                        System.out.println("Sold " + sellAmount + " shares of " + sellSymbol + " at $" + sellPrice + " for a profit of $" + profit);
+                    } catch (SQLException e) {
+                        switch (e.getErrorCode()) {
+                            case 2290:
+                                System.err.println("Error: cannot withdraw more than account balance");
+                                break;
+                            default:
+                                System.err.println(e);
+                        }
+                    }
+
                     break;
                 case "5":
                     System.out.println("Cancel");
