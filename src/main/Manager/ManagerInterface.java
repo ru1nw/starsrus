@@ -43,7 +43,8 @@ public class ManagerInterface extends UserInterface {
                     username = myObj.nextLine();
 
                     try {
-                        operation.getStatement(username);
+                        String result = operation.getStatement(username);
+                        System.out.println(result);
                     } catch (Exception e) {
                         System.err.println(e);
                     }
@@ -52,7 +53,8 @@ public class ManagerInterface extends UserInterface {
                     System.out.println("List Active Customers");
 
                     try {
-                        operation.getActiveCustomer();
+                        String result = operation.getActiveCustomer();
+                        System.out.println(result);
                     } catch (Exception e) {
                         System.err.println(e);
                     }
@@ -61,7 +63,8 @@ public class ManagerInterface extends UserInterface {
                     System.out.println("Generate Government Drug & Tax Evasion Report (DTER)");
 
                     try {
-                        operation.getDTER();
+                        String result = operation.getDTER();
+                        System.out.println(result);
                     } catch (Exception e) {
                         System.err.println(e);
                     }
@@ -73,7 +76,8 @@ public class ManagerInterface extends UserInterface {
                     username = myObj.nextLine();
 
                     try {
-                        operation.getCustomerReport(username);
+                        String result = operation.getCustomerReport(username);
+                        System.out.println(result);
                     } catch (Exception e) {
                         System.err.println(e);
                     }
@@ -82,7 +86,8 @@ public class ManagerInterface extends UserInterface {
                     System.out.println("Delete Transactions");
 
                     try {
-                        operation.deleteTransactions();
+                        String result = operation.deleteTransactions();
+                        System.out.println(result);
                     } catch (Exception e) {
                         System.err.println(e);
                     }

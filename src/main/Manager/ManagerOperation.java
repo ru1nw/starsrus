@@ -23,17 +23,17 @@ public class ManagerOperation extends UserOperation {
     public String addInterest() throws SQLException {return "";}
 
     // 2 generate monthly statement
-    public void getStatement(String username) throws SQLException {}
+    public String getStatement(String username) throws SQLException {return "";}
 
     // 3 list active customer
-    public void getActiveCustomer() throws SQLException {}
+    public String getActiveCustomer() throws SQLException {return "";}
 
     // 4 generate DTER
-    public void getDTER() throws SQLException {}
+    public String getDTER() throws SQLException {return "";}
 
     // 5 customer report
-    public void getCustomerReport(String username) throws SQLException {}
+    public String getCustomerReport(String username) throws SQLException {return "";}
 
     // 6 delete transactions
-    public void deleteTransactions() throws SQLException {}
+    public String deleteTransactions() throws SQLException {return "";}
 }
