@@ -86,7 +86,129 @@ public class ManagerOperation extends UserOperation {
     }
 
     // 2 generate monthly statement
-    public final String getStatement(String username) throws SQLException {return "";}
+    public final String getStatement(String username) throws SQLException {
+        StringBuilder transactionHistory = new StringBuilder();
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT name, email " +
+                    "FROM Customers " +
+                    "WHERE username = '" + username + "'"
+                )
+            ) {
+                transactionHistory.append("Name\t\t\t\tEmail\n");
+                resultSet.next();
+                String name = resultSet.getString("name");
+                String email = resultSet.getString("email");
+                transactionHistory.append(name + email + "\n");
+            }
+        }
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT " +
+                        "D1.closingDate AS initDate, " +
+                        "D1.closingBalance AS initBalance, " +
+                        "D2.closingDate AS endDate, " +
+                        "D2.closingBalance AS endBalance " +
+                    "FROM DailyClosingBalances D1, DailyClosingBalances D2 " +
+                    "WHERE D1.aid IN (" +
+                        "SELECT aid " +
+                        "FROM Accounts " +
+                            "JOIN Customers ON Accounts.uname=Customers.username " +
+                        "WHERE uname = '" + username + "'" +
+                    ") AND D1.aid=D2.aid AND D1.closingDate = (" +
+                        "SELECT MIN(closingDate) FROM DailyClosingBalances D3 WHERE D1.aid=D3.aid" +
+                    ") AND D2.closingDate = (" +
+                        "SELECT MAX(closingDate) FROM DailyClosingBalances D3 WHERE D2.aid=D3.aid" +
+                    ")"
+                )
+            ) {
+                transactionHistory.append("Start Date\tStart Balance\tEnd Date\tEnd Balance\n");
+                while (resultSet.next()){
+                    String initDate = resultSet.getString("initDate").substring(0, 11);
+                    String initBalance = resultSet.getString("initBalance");
+                    String endDate = resultSet.getString("endDate").substring(0, 11);
+                    String endBalance = resultSet.getString("endBalance");
+                    transactionHistory.append(initDate + "\t" + initBalance + "\t\t" + endDate + "\t" + endBalance + "\n");
+                }
+            }
+        }
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT sumEndBalance-sumInitBalance-bCount*20-sCount*20-cCount*20 AS profit " +
+                    "FROM (" +
+                        "SELECT SUM(D1.closingBalance) AS sumInitBalance, SUM(D2.closingBalance) AS sumEndBalance " +
+                        "FROM DailyClosingBalances D1, DailyClosingBalances D2 " +
+                        "WHERE D1.aid IN (" +
+                            "SELECT aid " +
+                            "FROM Accounts " +
+                                "JOIN Customers ON Accounts.uname=Customers.username " +
+                            "WHERE uname = '" + username + "'" +
+                        ") AND D1.aid=D2.aid AND D1.closingDate = (" +
+                            "SELECT MIN(closingDate) FROM DailyClosingBalances D3 WHERE D1.aid=D3.aid" +
+                        ") AND D2.closingDate = (" +
+                            "SELECT MAX(closingDate) FROM DailyClosingBalances D3 WHERE D2.aid=D3.aid" +
+                        ")" +
+                    "), (" +
+                        "SELECT COUNT(tid) AS bCount " +
+                        "FROM Buys NATURAL JOIN Transactions " +
+                        "WHERE aid IN (" +
+                            "SELECT aid " +
+                            "FROM Accounts " +
+                                "JOIN Customers ON Accounts.uname=Customers.username " +
+                            "WHERE uname = '" + username + "'" +
+                        ")" +
+                    "), (" +
+                        "SELECT COUNT(tid) AS sCount " +
+                        "FROM Sells NATURAL JOIN Transactions " +
+                        "WHERE aid IN (" +
+                            "SELECT aid " +
+                            "FROM Accounts " +
+                                "JOIN Customers ON Accounts.uname=Customers.username " +
+                            "WHERE uname = '" + username + "'" +
+                        ")" +
+                    "), (" +
+                        "SELECT COUNT(tid) AS cCount " +
+                        "FROM Cancels NATURAL JOIN Transactions " +
+                        "WHERE aid IN (" +
+                            "SELECT aid " +
+                            "FROM Accounts " +
+                                "JOIN Customers ON Accounts.uname=Customers.username " +
+                            "WHERE uname = '" + username + "'" +
+                        ")" +
+                    ")"
+                )
+            ) {
+                transactionHistory.append("Total monthly profit: $");
+                resultSet.next();
+                transactionHistory.append(resultSet.getString("profit") + "\n");
+            }
+        }
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT aid, tdate " +
+                    "FROM Transactions " +
+                    "WHERE aid IN (" +
+                        "SELECT aid " +
+                        "FROM Accounts " +
+                            "JOIN Customers ON Accounts.uname=Customers.username " +
+                        "WHERE uname = '" + username + "'" +
+                    ")"
+                )
+            ) {
+                transactionHistory.append("Transaction history:\nAccount ID\tTransaction date\n");
+                while (resultSet.next()) {
+                    String aid = resultSet.getString("aid");
+                    String tdate = resultSet.getString("tdate");
+                    transactionHistory.append(aid + "\t\t" + tdate + "\n");
+                }
+                return transactionHistory.toString();
+            }
+        }
+    }
 
     // 3 list active customer
     public final String getActiveCustomer() throws SQLException {
