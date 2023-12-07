@@ -89,7 +89,32 @@ public class ManagerOperation extends UserOperation {
     public final String getStatement(String username) throws SQLException {return "";}
 
     // 3 list active customer
-    public final String getActiveCustomer() throws SQLException {return "";}
+    public final String getActiveCustomer() throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            try (
+               ResultSet resultSet = statement.executeQuery(
+                    "SELECT buys+sells as shares, B.uname " +
+                    "FROM (SELECT SUM(amt) as buys, uname " +
+                    "FROM Buys NATURAL JOIN Transactions NATURAL JOIN Accounts " +
+                    "GROUP BY uname " +
+                    ") B INNER JOIN (SELECT SUM(amt) as sells, uname " +
+                    "FROM Sells NATURAL JOIN Transactions NATURAL JOIN Accounts " +
+                    "GROUP BY uname " +
+                    ") S ON B.uname = S.uname " +
+                    "WHERE buys+sells >= 1000"
+                )
+            ) {
+                StringBuilder activeCustomers = new StringBuilder("Username\t\tTotal shares traded\n");
+                while (resultSet.next()) {
+                    activeCustomers
+                            .append(resultSet.getString("uname")).append("\t")
+                            .append(resultSet.getString("shares")).append("\n");
+                }
+
+                return activeCustomers.toString();
+            }
+        }
+    }
 
     // 4 generate DTER
     public final String getDTER() throws SQLException {
