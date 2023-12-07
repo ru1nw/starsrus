@@ -92,7 +92,31 @@ public class ManagerOperation extends UserOperation {
     public final String getActiveCustomer() throws SQLException {return "";}
 
     // 4 generate DTER
-    public final String getDTER() throws SQLException {return "";}
+    public final String getDTER() throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            try (
+               ResultSet resultSet = statement.executeQuery(
+                    "SELECT uname, profit*(1+interest*1) as profit, state " +
+                    "FROM (SELECT SUM((sprice-bprice)*amt) as profit, uname " +
+                    "FROM Sells NATURAL JOIN Transactions NATURAL JOIN Accounts " +
+                    "WHERE tid NOT IN (SELECT target FROM Cancels) " +
+                    "GROUP BY uname) A INNER JOIN Customers C ON A.uname = C.username, " +
+                    "(SELECT floatValue as interest FROM Settings WHERE key = 'monthlyInterestRate') " +
+                    "WHERE profit*(1+interest*1) >= 10000"
+                )
+            ) {
+                StringBuilder dter = new StringBuilder("Username\t\tProfit\tState\n");
+                while (resultSet.next()) {
+                    dter
+                            .append(resultSet.getString("uname")).append("\t")
+                            .append(resultSet.getString("profit")).append("\t")
+                            .append(resultSet.getString("state")).append("\n");
+                }
+
+                return dter.toString();
+            }
+        }
+    }
 
     // 5 customer report
     public final String getCustomerReport(String username) throws SQLException {return "";}
