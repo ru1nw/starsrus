@@ -128,6 +128,53 @@ public class TraderOperation extends UserOperation {
         }
     }
 
+    // 4 sell stocks
+    public Double sellStocks(String username, String stockSymbol, Double buyPrice, Double amount) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            Integer marketAID = this.getMarketAccount(username, statement);
+            Integer stockAID = this.getOrCreateStockAccount(username, stockSymbol, statement);
+
+            Double currentPrice = getStockPrice(stockSymbol, statement);
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "UPDATE Accounts A " +
+                    "SET A.balance = A.balance + " + (currentPrice*amount-20) + " " +
+                    "WHERE A.aid = " + marketAID
+                )
+            ) {}
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "UPDATE Accounts A " +
+                    "SET A.balance = A.balance - " + amount + " " +
+                    "WHERE A.aid = " + stockAID
+                )
+            ) {}
+
+            Integer sellTid = getNextID("Transactions", "tid", statement);
+            Date currentDate = getCurrentDate(statement);
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO Transactions T (tid, aid, tdate) " +
+                    "VALUES (" + sellTid + ", " + stockAID + ", DATE '" + currentDate + "')"
+                )
+            ) {}
+
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT " +
+                    "INTO SELLS (tid, amt, sprice, bprice) " +
+                    "VALUES (" + sellTid + ", " + amount + ", " + currentPrice + ", " + buyPrice + ")"
+                )
+            ) {}
+
+            return (currentPrice-buyPrice)*amount-20;
+        }
+    }
+
     static class OwnedShare {
         Double price;
         Double amount;
@@ -180,49 +227,144 @@ public class TraderOperation extends UserOperation {
         }
     }
 
-    public Double sellStocks(String username, String stockSymbol, Double buyPrice, Double amount) throws SQLException {
+    // 5 cancel last (buy/sell) transaction
+    public String cancelTransaction(String username) throws SQLException {
         try (Statement statement = connection.createStatement()) {
-            Integer marketAID = this.getMarketAccount(username, statement);
-            Integer stockAID = this.getOrCreateStockAccount(username, stockSymbol, statement);
-
-            Double currentPrice = getStockPrice(stockSymbol, statement);
-
-            try (
-                ResultSet resultSet = statement.executeQuery(
-                    "UPDATE Accounts A " +
-                    "SET A.balance = A.balance + " + (currentPrice*amount-20) + " " +
-                    "WHERE A.aid = " + marketAID
-                )
-            ) {}
-
-            try (
-                ResultSet resultSet = statement.executeQuery(
-                    "UPDATE Accounts A " +
-                    "SET A.balance = A.balance - " + amount + " " +
-                    "WHERE A.aid = " + stockAID
-                )
-            ) {}
-
-            Integer sellTid = getNextID("Transactions", "tid", statement);
+            // TODO: Switch back
             Date currentDate = getCurrentDate(statement);
+//            Date currentDate = new Date(2023-1900, 10-1, 18);
 
+            Integer lastTID = null;
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT tid as lastTID " +
+                    "FROM (SELECT MAX(tid) as tid " +
+                    "FROM Transactions NATURAL JOIN Accounts " +
+                    "WHERE uname = '" + username + "' AND tdate = DATE '" + currentDate + "') " +
+                    "WHERE tid IN (SELECT tid FROM Buys) OR tid IN (SELECT tid FROM Sells)"
+                )
+            ) {
+                while (resultSet.next()) {
+                    lastTID = resultSet.getInt("lastTID");
+                }
+            }
+
+            if (lastTID == null) return null;
+
+            Integer marketAID = this.getMarketAccount(username, statement);
+
+            Integer stockAID;
+            String stockSymbol;
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT aid, ssymbol " +
+                    "FROM Transactions NATURAL JOIN Accounts NATURAL JOIN StockAccounts " +
+                    "WHERE tid = " + lastTID
+                )
+            ) {
+                resultSet.next();
+                stockAID = resultSet.getInt("aid");
+                stockSymbol = resultSet.getString("ssymbol");
+            }
+
+            String response = null;
+
+            try (
+                ResultSet sellSet = statement.executeQuery(
+                    "SELECT amt, sprice " +
+                    "FROM Sells " +
+                    "WHERE tid = " + lastTID
+                )
+            ) {
+                sellSet.next();
+                Double amount = sellSet.getDouble("amt");
+                Double sellPrice = sellSet.getDouble("sprice");
+
+                Double costAmount = amount*sellPrice+20;
+
+                try (
+                    ResultSet resultSet = statement.executeQuery(
+                        "UPDATE Accounts A " +
+                        "SET A.balance = A.balance - " + costAmount + " " +
+                        "WHERE A.aid = " + marketAID
+                    )
+                ) {}
+
+                try (
+                    ResultSet resultSet = statement.executeQuery(
+                        "UPDATE Accounts A " +
+                        "SET A.balance = A.balance + " + amount + " " +
+                        "WHERE A.aid = " + stockAID
+                    )
+                ) {}
+
+                response = "Successfully canceled selling " + amount + " shares of " + stockSymbol + " for a total value of $" + costAmount + " (including fee)";
+            } catch (SQLException e) {
+                switch (e.getErrorCode()) {
+                    case 17289: // result set is empty
+                        break;
+                    default:
+                        throw e;
+                }
+            }
+
+            try (
+                ResultSet buySet = statement.executeQuery(
+                    "SELECT amt, price " +
+                    "FROM Buys " +
+                    "WHERE tid = " + lastTID
+                )
+            ) {
+                buySet.next();
+                Double amount = buySet.getDouble("amt");
+                Double price = buySet.getDouble("price");
+
+                Double refundAmount = (amount*price-20);
+
+                try (
+                    ResultSet resultSet = statement.executeQuery(
+                        "UPDATE Accounts A " +
+                        "SET A.balance = A.balance + " + refundAmount + " " +
+                        "WHERE A.aid = " + marketAID
+                    )
+                ) {}
+
+                try (
+                    ResultSet resultSet = statement.executeQuery(
+                        "UPDATE Accounts A " +
+                        "SET A.balance = A.balance - " + amount + " " +
+                        "WHERE A.aid = " + stockAID
+                    )
+                ) {}
+
+                response = "Successfully canceled buying " + amount + " shares of " + stockSymbol + " for a total value of $" + refundAmount + " (including fee)";
+            } catch (SQLException e) {
+                switch (e.getErrorCode()) {
+                    case 17289: // result set is empty
+                        break;
+                    default:
+                        throw e;
+                }
+            }
+
+            Integer cancelTID = getNextID("Transactions", "tid", statement);
             try (
                 ResultSet resultSet = statement.executeQuery(
                     "INSERT " +
                     "INTO Transactions T (tid, aid, tdate) " +
-                    "VALUES (" + sellTid + ", " + stockAID + ", DATE '" + currentDate + "')"
+                    "VALUES (" + cancelTID + ", " + stockAID + ", DATE '" + currentDate + "')"
                 )
             ) {}
 
             try (
                 ResultSet resultSet = statement.executeQuery(
                     "INSERT " +
-                    "INTO SELLS (tid, amt, sprice, bprice) " +
-                    "VALUES (" + sellTid + ", " + amount + ", " + currentPrice + ", " + buyPrice + ")"
+                    "INTO Cancels T (tid, target) " +
+                    "VALUES (" + cancelTID + ", " + lastTID + ")"
                 )
             ) {}
 
-            return (currentPrice-buyPrice)*amount-20;
+            return response;
         }
     }
 
@@ -251,18 +393,25 @@ public class TraderOperation extends UserOperation {
                 // stock accounts can only buy and sell
                 ResultSet resultSet = statement.executeQuery(
                     "SELECT * FROM (" +
-                    "(SELECT tid, aid, TO_CHAR(tdate, 'YYYY-MM-DD') AS tdate, amt, price, ssymbol, 'buy' AS op " +
+                    "SELECT tid, aid, TO_CHAR(tdate, 'YYYY-MM-DD') AS tdate, amt, price, ssymbol, 'buy' AS op " +
                     "FROM Transactions NATURAL JOIN Buys NATURAL JOIN StockAccounts " + 
                     "WHERE aid IN (SELECT aid " +
                     "FROM Accounts NATURAL JOIN StockAccounts " +
-                    "WHERE uname = '" + username + "')" +
+                    "WHERE uname = '" + username + "') " +
                     "UNION " + 
                     "SELECT tid, aid, TO_CHAR(tdate, 'YYYY-MM-DD') AS tdate, amt, sprice as price, ssymbol, 'sell' AS op " +
                     "FROM Transactions NATURAL JOIN Sells NATURAL JOIN StockAccounts " + 
                     "WHERE aid IN (SELECT aid " +
                     "FROM Accounts NATURAL JOIN StockAccounts " +
-                    "WHERE uname = '" + username + "'))" +
-                    ") ORDER BY tdate, tid DESC"
+                    "WHERE uname = '" + username + "') " +
+                    "UNION " +
+                    "SELECT tid, aid, TO_CHAR(tdate, 'YYYY-MM-DD') AS tdate, null as amt, null as price, ssymbol, 'cancel' AS op " +
+                    "FROM Transactions NATURAL JOIN Cancels NATURAL JOIN " +
+                    "(SELECT tid as target, ssymbol FROM Transactions NATURAL JOIN StockAccounts) " +
+                    "WHERE aid IN (SELECT aid " +
+                    "FROM Accounts NATURAL JOIN StockAccounts " +
+                    "WHERE uname = '" + username + "') " +
+                    ") ORDER BY tdate DESC, tid DESC"
                 )
             ) {
                 StringBuilder transactionHistory = new StringBuilder("Date\t\tTransaction Type\tStock Symbol\t# of Shares\tPrice (per share)\n");

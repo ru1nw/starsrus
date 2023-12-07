@@ -196,6 +196,22 @@ public class TraderInterface extends UserInterface {
                     break;
                 case "5":
                     System.out.println("Cancel");
+                    try {
+                        String result = operation.cancelTransaction(user);
+                        if (result == null) {
+                            System.err.println("Error: last transaction for this user was not a buy/sell");
+                        } else {
+                            System.err.println(result);
+                        }
+                    } catch (SQLException e) {
+                        switch (e.getErrorCode()) {
+                            case 2290:
+                                System.err.println("Error: cannot withdraw more than account balance");
+                                break;
+                            default:
+                                System.err.println(e);
+                        }
+                    }
                     break;
                 case "6":
                     System.out.println("Show market account balance");
