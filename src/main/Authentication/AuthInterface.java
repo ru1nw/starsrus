@@ -3,7 +3,7 @@ package main.Authentication;
 import java.util.Scanner;
 
 import oracle.jdbc.OracleConnection;
-
+import main.Manager.ManagerInterface;
 import main.Template.UserInterface;
 import main.TestDebugDemo.TestDebugDemoInterface;
 import main.Trader.TraderInterface;
@@ -84,7 +84,7 @@ public class AuthInterface extends UserInterface {
                         System.err.println("ERROR: login failed.");
                     } else {
                         // uncomment the line below when ManagerInterface is implemented
-                        // ManagerInterface.display(connection, user);
+                        ManagerInterface.display(connection, user);
                         userChoice = "0";
                     }
                     break;
