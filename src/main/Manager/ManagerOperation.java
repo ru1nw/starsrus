@@ -1,6 +1,10 @@
 package main.Manager;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+
+import oracle.jdbc.OracleConnection;
 
 import main.Template.UserOperation;
 
@@ -20,7 +24,60 @@ public class ManagerOperation extends UserOperation {
     }
 
     // 1 add interest
-    public String addInterest() throws SQLException {return "";}
+    public String addInterest() throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "SELECT aid, AVG(closingbalance) AS avgbalance " +
+                    "FROM DailyClosingBalances " +
+                    "GROUP BY aid"
+                )
+            ) {
+                while (resultSet.next()) {
+                    String aid = resultSet.getString("aid");
+                    String avgbalance = resultSet.getString("avgbalance");
+                    accrueInterest(aid, avgbalance);
+                }
+            }
+        }
+        return "";
+    }
+
+    public void accrueInterest(String aid, String avgbalance) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "UPDATE Accounts " +
+                    "SET balance = ((SELECT balance FROM Accounts WHERE aid = " + aid + ") + " + avgbalance + ") " +
+                    "WHERE aid = " + aid
+                )
+            ) {}
+        }
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT INTO Transactions (tid, aid, tdate) " +
+                    "VALUES (" +
+                        "(SELECT MAX(tid)+1 FROM Transactions), " +
+                        aid + ", " +
+                        "(SELECT dateValue FROM Settings WHERE key = 'currentDate')" +
+                    ")"
+                )
+            ) {}
+        }
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT INTO AccrueInterests (tid, amt, result) " +
+                    "VALUES (" +
+                        "(SELECT MAX(tid) FROM Transactions), " +
+                        avgbalance + ", " +
+                        "(SELECT balance FROM Accounts WHERE aid = " + aid + ") + " + avgbalance +
+                    ")"
+                )
+            ) {}
+        }
+    }
 
     // 2 generate monthly statement
     public String getStatement(String username) throws SQLException {return "";}

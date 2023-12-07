@@ -2,13 +2,15 @@ package main.Manager;
 
 import java.sql.SQLException;
 
+import oracle.jdbc.OracleConnection;
+
 import main.Movie.MovieInterface;
 import main.Template.UserInterface;
 
 public class ManagerInterface extends UserInterface {
     private static String options = """
         ------------------------------------------------------
-        Trader options:
+        Manager options:
         1. Add Interest
         2. Generate Monthly Statement
         3. List Active Customers
@@ -68,7 +70,6 @@ public class ManagerInterface extends UserInterface {
                     } catch (Exception e) {
                         System.err.println(e);
                     }
-                    break;
                     break;
                 case "5":
                     System.out.println("Customer Report");
