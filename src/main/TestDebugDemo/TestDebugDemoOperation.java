@@ -41,6 +41,24 @@ public class TestDebugDemoOperation extends UserOperation {
 
     // 2 close market
     public void closeMarket() throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT INTO DailyClosingBalances (aid, closingDate, closingBalance) " +
+                        "SELECT aid, (SELECT dateValue FROM Settings WHERE key = 'currentDate'), balance " +
+                        "FROM Accounts"
+                )
+            ) {}
+        }
+        try (Statement statement = connection.createStatement()) {
+            try (
+                ResultSet resultSet = statement.executeQuery(
+                    "INSERT INTO DailyClosingPrices (ssymbol, closingDate, closingPrice) " +
+                        "SELECT symbol, (SELECT dateValue FROM Settings WHERE key = 'currentDate'), price " +
+                        "FROM StarStocks"
+                )
+            ) {}
+        }
         toggleMarket("0");
     }
 
